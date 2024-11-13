@@ -2,7 +2,7 @@
 
 # Variables
 FRP_VERSION="0.61.0"
-FRP_TAR="frp_${FRP_VERSION}_linux_amd64.tar.gz"
+FRP_TAR="frp_${FRP_VERSION}_linux_arm64.tar.gz"
 FRP_URL="https://github.com/fatedier/frp/releases/download/v${FRP_VERSION}/${FRP_TAR}"
 INSTALL_DIR="/usr/local/bin"
 CONFIG_DIR="/etc"
@@ -27,7 +27,7 @@ tar -zxvf ${FRP_TAR}
 
 # Move the frpc binary to the installation directory
 echo "Moving frpc to ${INSTALL_DIR}..."
-sudo mv frp_0.61.0_linux_amd64/frpc ${INSTALL_DIR}/
+sudo mv frp_0.61.0_linux_arm64/frpc ${INSTALL_DIR}/
 
 # Create a configuration file for frpc
 echo "Creating frpc configuration file..."
@@ -74,6 +74,6 @@ sudo systemctl status frpc
 
 # Clean up by removing the downloaded tar file and extracted directory
 echo "Cleaning up..."
-rm -rf ${FRP_TAR} frp_0.61.0_linux_amd64
+rm -rf ${FRP_TAR} frp_0.61.0_linux_arm64
 
 echo "Frpc setup is complete!"
