@@ -1,18 +1,56 @@
 #!/bin/bash
 
-# Disable all swap
-sudo swapoff -a
+# Update package list and install necessary packages
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y xfce4 xfce4-goodies tightvncserver x11vnc caddy
 
-# Permanently disable swap by commenting out the swap line in /etc/fstab
-sudo sed -i '/swap/d' /etc/fstab
+# Prompt for VNC password
+read -sp "Enter VNC password: " VNC_PASSWORD
+echo
 
-# Set timezone to Perth/Australia
-sudo timedatectl set-timezone Australia/Perth
+# Configure VNC Server
+# Start VNC server to create initial config
+vncserver :1
 
-# Create the .hushlogin directory in /root
-sudo mkdir -p /root/.hushlogin
+# Kill the VNC server to modify the configuration
+vncserver -kill :1
 
-# Set hostname to webtop.eguo.xyz
-sudo hostnamectl set-hostname webtop.eguo.xyz
+# Create a new startup file for VNC
+echo "#!/bin/sh" > ~/.vnc/xstartup
+echo "xrdb $HOME/.Xresources" >> ~/.vnc/xstartup
+echo "startxfce4 &" >> ~/.vnc/xstartup
 
-echo "Script executed successfully."
+# Make the xstartup file executable
+chmod +x ~/.vnc/xstartup
+
+# Set VNC password
+mkdir -p ~/.vnc
+echo "$VNC_PASSWORD" | vncpasswd -f > ~/.vnc/passwd
+chmod 600 ~/.vnc/passwd
+
+# Start the VNC server again
+vncserver :1
+
+# Install and configure Caddy for HTTPS access
+CADDY_CONFIG="/etc/caddy/Caddyfile"
+
+# Create a basic Caddyfile configuration for HTTPS with hostname check
+echo "webtop.eguo.xyz {
+    reverse_proxy localhost:5901  # Proxy to VNC server (adjust port if needed)
+}
+
+{
+    # Handle requests to other hostnames with a 404 response
+    respond \"404 Not Found\" 404 {
+        path /
+    }
+}" | sudo tee $CADDY_CONFIG > /dev/null
+
+# Enable Caddy service and start it
+sudo systemctl enable caddy
+sudo systemctl start caddy
+
+# Print completion message with instructions
+echo "Setup complete!"
+echo "You can connect to your VNC server using: vncviewer <your_server_ip>:1"
+echo "Access your services via HTTPS at https://webtop.eguo.xyz"
